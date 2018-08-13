@@ -37,15 +37,33 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * handle definition
+ * handle definition / declaration
  */
 typedef struct mod_npage_buffer_hdl_attr mod_npage_hdl_t;
+
+/**
+ * seek function
+ */
+typedef int (*mod_npage_buffer_seek_t)(int _fd, int _off, unsigned off);
+
+/**
+ * read function
+ */
+typedef int (*mod_npage_buffer_read_t)(int _fd, char *_dst, unsigned _len);
+
+/**
+ * write function
+ */
+typedef int (*mod_npage_buffer_write_t)(int _fd, char *_src, unsigned _len);
 
 /**
  * attributes necessary when opening this storage
  */
 struct mod_npage_buffer_attr {
-    unsigned _pagesz;    /**/
+    unsigned pagesz;                /*!< page size */
+    mod_npage_buffer_seek_t seek;   /*!< seek callout */
+    mod_npage_buffer_read_t read;   /*!< read callout */
+    mod_npage_buffer_write_t write; /*!< write callout */
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -55,11 +73,12 @@ struct mod_npage_buffer_attr {
 /**************************************************************************//**
  * @brief  mod_npage_buffer__init
  *
- * @param [in,out]   _p         description
+ * @param [out]     *_hdl         handle
+ * @param [in]      *_arg         argument
  * @return     0, if successful or < 0, if failed
  *             + '-1', initialization has failed
  * ****************************************************************************/
-int mod_npage_buffer__open(mod_npage_hdl_t *_hdl);
+int mod_npage_buffer__open(mod_npage_hdl_t *_hdl, struct mod_npage_buffer_attr *_arg);
 
 /**************************************************************************//**
  * @brief  mod_npage_buffer__cleanup
