@@ -36,81 +36,17 @@ extern "C" {
 // type definitions, unions, structures
 ////////////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////////////
-// interface function
-////////////////////////////////////////////////////////////////////////////////
-
-/**************************************************************************//**
- * @brief  mod_npage_buffer__init
- *
- * @param [in,out]   _p         description
- * @return     0, if successful or < 0, if failed
- *             + '-1', initialization has failed
- * ****************************************************************************/
-int mod_npage_buffer__init(void *_p);
-
-/**************************************************************************//**
- * @brief  mod_npage_buffer__cleanup
- *
- * @param [in,out]   _p         description
- * @return     0, if successful or < 0, if failed
- *             + '-1', initialization has failed
- * ****************************************************************************/
-int mod_npage_buffer__cleanup(void *_p);
-
-/**************************************************************************//**
- * @brief  mod_npage_buffer__reinit
- *
- * @param [in,out]   _p         description
- * @return     0, if successful or < 0, if failed
- *             + '-1', initialization has failed
- * ****************************************************************************/
-int mod_npage_buffer__reinit(void *_p);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
-
-/** \} */
 /**
- * \addtogroup mod_npage_buffer
- * \{
- * \file mod_npage_buffer.h
- *
+ * handle definition
  */
+typedef struct mod_npage_buffer_hdl_attr mod_npage_hdl_t;
 
-#ifndef __mod_npage_buffer_H__
-#define __mod_npage_buffer_H__
-
-////////////////////////////////////////////////////////////////////////////////
-/// Includes
-////////////////////////////////////////////////////////////////////////////////
-
-/* c - runtime */
-#include <stdint.h>
-#include <stddef.h>
-#include <stdlib.h>
-
-/* system */
-
-/* own libs */
-
-/* project */
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-////////////////////////////////////////////////////////////////////////////////
-/// Macros
-////////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////////////////////
-// type definitions, unions, structures
-////////////////////////////////////////////////////////////////////////////////
+/**
+ * attributes necessary when opening this storage
+ */
+struct mod_npage_buffer_attr {
+    unsigned _pagesz;    /**/
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // interface function
@@ -123,7 +59,7 @@ extern "C" {
  * @return     0, if successful or < 0, if failed
  *             + '-1', initialization has failed
  * ****************************************************************************/
-int mod_npage_buffer__init(void *_p);
+int mod_npage_buffer__open(mod_npage_hdl_t *_hdl);
 
 /**************************************************************************//**
  * @brief  mod_npage_buffer__cleanup
@@ -132,7 +68,18 @@ int mod_npage_buffer__init(void *_p);
  * @return     0, if successful or < 0, if failed
  *             + '-1', initialization has failed
  * ****************************************************************************/
-int mod_npage_buffer__cleanup(void *_p);
+int mod_npage_buffer__close(mod_npage_hdl_t *_hdl);
+
+/**************************************************************************//**
+ * @brief  mod_npage_buffer__seek
+ *
+ * @param [in]    _p         description
+ * @param
+ *
+ * @return     0, if successful or < 0, if failed
+ *             + '-1', initialization has failed
+ * ****************************************************************************/
+int mod_npage_buffer__seek(mod_npage_hdl_t _hdl, int _offset, unsigned _org);
 
 /**************************************************************************//**
  * @brief  mod_npage_buffer__reinit
@@ -141,7 +88,16 @@ int mod_npage_buffer__cleanup(void *_p);
  * @return     0, if successful or < 0, if failed
  *             + '-1', initialization has failed
  * ****************************************************************************/
-int mod_npage_buffer__reinit(void *_p);
+int mod_npage_buffer__read(mod_npage_hdl_t _hdl);
+
+/**************************************************************************//**
+ * @brief  mod_npage_buffer__reinit
+ *
+ * @param [in,out]   _p         description
+ * @return     0, if successful or < 0, if failed
+ *             + '-1', initialization has failed
+ * ****************************************************************************/
+int mod_npage_buffer__write(mod_npage_hdl_t _hdl);
 
 #ifdef __cplusplus
 }
