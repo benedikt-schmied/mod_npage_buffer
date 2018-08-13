@@ -39,7 +39,7 @@ extern "C" {
 /**
  * handle definition / declaration
  */
-typedef struct mod_npage_buffer_hdl_attr mod_npage_hdl_t;
+typedef struct mod_npage_buffer_hdl_attr *mod_npage_hdl_t;
 
 /**
  * seek function
@@ -107,7 +107,7 @@ int mod_npage_buffer__seek(mod_npage_hdl_t _hdl, int _offset, unsigned _org);
  * @return     0, if successful or < 0, if failed
  *             + '-1', initialization has failed
  * ****************************************************************************/
-int mod_npage_buffer__read(mod_npage_hdl_t _hdl);
+int mod_npage_buffer__read(mod_npage_hdl_t _hdl, char *_dst, unsigned _len);
 
 /**************************************************************************//**
  * @brief  mod_npage_buffer__reinit
@@ -116,7 +116,7 @@ int mod_npage_buffer__read(mod_npage_hdl_t _hdl);
  * @return     0, if successful or < 0, if failed
  *             + '-1', initialization has failed
  * ****************************************************************************/
-int mod_npage_buffer__write(mod_npage_hdl_t _hdl);
+int mod_npage_buffer__write(mod_npage_hdl_t _hdl, char *_src, unsigned _len);
 
 #ifdef __cplusplus
 }

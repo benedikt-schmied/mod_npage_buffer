@@ -1,0 +1,278 @@
+
+static int __read(storage_hdl_t _hdl, unsigned _len, unsigned char *const _buf)
+{
+
+	int ret = EOK;
+	uint8_t cmd;
+	uint8_t buf[4]; /* we've got one byte of command and four bytes of address */
+	unsigned long frag_len;
+	uint8_t buf_len;
+
+
+	if (_hdl == NULL) {
+		return -ESTD_INVAL;
+	}
+	if (_buf == NULL) {
+		return -EPAR_NULL;
+	}
+	if (_len == 0) {
+		return EOK;
+	}
+
+	/* check, whether buffer is empty */
+	if (_hdl->buf.stat == M_DEV_FLASH__STAT__EMPTY) { /* yes, just read from the device (1. case) */
+
+		/* select the appropriate command */
+		cmd = (M_FLASH__CMD__READ  >> M_FLASH__BIT_POS__CMD_ID) & M_FLASH__BIT_MASK__CMD_ID;
+
+		/* select the appropriate start address */
+		M_FLASH__SET_CMD(buf, cmd);
+		M_FLASH__SET_ADDR__3BYTE(buf, _hdl->cur_off); /* the global start address is neglected -> it will always start at zero! */
+
+		M_FLASH__WAIT_FOR_IDLE
+
+		/* start with sending the read command */
+		ret = lib_spi__cmd_and_read(_hdl->spi_hdl, buf, _buf, sizeof(buf), _len);
+		if (ret == EOK) {
+			_hdl->cur_off += _len;
+		}
+	} else {
+		if (_hdl->cur_off < (_hdl->buf.start + _hdl->buf.indic_bgn)) {
+			if ((unsigned long)_hdl->cur_off + _len < (unsigned long)_hdl->buf.start + _hdl->buf.indic_bgn) {
+
+				/* simply read, select the appropriate command*/
+				cmd = (M_FLASH__CMD__READ >> M_FLASH__BIT_POS__CMD_ID) & M_FLASH__BIT_MASK__CMD_ID;
+
+				/* select the appropriate start address */
+				M_FLASH__SET_CMD(buf, cmd);
+				M_FLASH__SET_ADDR__3BYTE(buf, _hdl->cur_off); /* the global start address is neglected -> it will always start at zero! */
+
+				M_FLASH__WAIT_FOR_IDLE
+
+				ret = lib_spi__cmd_and_read(_hdl->spi_hdl, buf, _buf, sizeof(buf), _len);
+			} else { /* fragmented read operation, first read from bus, then from buffer */
+				frag_len = (unsigned long)(_hdl->buf.start + _hdl->buf.indic_bgn - _hdl->cur_off);
+
+				/* simply read, select the appropriate command*/
+				cmd = (M_FLASH__CMD__READ  >> M_FLASH__BIT_POS__CMD_ID) & M_FLASH__BIT_MASK__CMD_ID;
+
+				/* select the appropriate start address */
+				M_FLASH__SET_CMD(buf, cmd);
+				M_FLASH__SET_ADDR__3BYTE(buf, _hdl->cur_off); /* the global start address is neglected -> it will always start at zero! */
+
+				M_FLASH__WAIT_FOR_IDLE
+
+				ret = lib_spi__cmd_and_read(_hdl->spi_hdl, buf, _buf, sizeof(buf), frag_len);
+				if (ret == EOK) {
+
+					/* increase current offset */
+					_hdl->cur_off += (long int)frag_len;
+					buf_len = (uint8_t)(_hdl->buf.indic_end - _hdl->buf.indic_bgn);
+					if (_len - frag_len > buf_len) { /* further fragmentation */
+
+						memcpy(_buf + frag_len, _hdl->buf.mem + _hdl->buf.indic_bgn, buf_len);
+
+						/* simply read, select the appropriate command*/
+						cmd =(M_FLASH__CMD__READ  >> M_FLASH__BIT_POS__CMD_ID) & M_FLASH__BIT_MASK__CMD_ID;
+
+						/* select the appropriate start address */
+						M_FLASH__SET_CMD(buf, cmd);
+						M_FLASH__SET_ADDR__3BYTE(buf, _hdl->cur_off + buf_len); /* the global start address is neglected -> it will always start at zero! */
+						ret = lib_spi__cmd_and_read(_hdl->spi_hdl, buf, _buf + frag_len + buf_len, sizeof(buf), _len - frag_len - buf_len);
+						if (ret == EOK) {
+							_hdl->cur_off += buf_len;
+						}
+					} else { /* simply read the buffer */
+						memcpy(_buf + frag_len, _hdl->buf.mem + _hdl->buf.indic_bgn, _len - frag_len);
+						_hdl->cur_off += _len - frag_len;
+					}
+				}
+			}
+		} else {
+
+			/* check, whether the request address does affect the buffer's current address range at all? */
+			if (_hdl->cur_off > _hdl->buf.start  + _hdl->buf.indic_end) { /* no, thus simply read */
+
+				/* select the appropriate command */
+				cmd = (M_FLASH__CMD__READ  >> M_FLASH__BIT_POS__CMD_ID) & M_FLASH__BIT_MASK__CMD_ID;
+
+				/* select the appropriate start address */
+				M_FLASH__SET_CMD(buf, cmd);
+				M_FLASH__SET_ADDR__3BYTE(buf, _hdl->cur_off); /* the global start address is neglected -> it will always start at zero! */
+
+				M_FLASH__WAIT_FOR_IDLE
+
+				/* start with sending the read command */
+				ret = lib_spi__cmd_and_read(_hdl->spi_hdl, buf, _buf, sizeof(buf), _len);
+			} else { /* it does affect the buffer's memory range */
+				buf_len = (uint8_t)(_hdl->buf.indic_end - _hdl->buf.indic_bgn);
+				_hdl->buf.indic_crr = _hdl->cur_off - _hdl->buf.start;
+				if (buf_len >= _len) {
+
+					/* simply read from buffer */
+					memcpy(_buf, _hdl->buf.mem + _hdl->buf.indic_crr, _len);
+				} else {
+
+					/* first read from buffer */
+					memcpy(_buf, _hdl->buf.mem + _hdl->buf.indic_crr, buf_len);
+
+					/* then read from device */
+					cmd = (M_FLASH__CMD__READ  >> M_FLASH__BIT_POS__CMD_ID) & M_FLASH__BIT_MASK__CMD_ID;
+
+					/* select the appropriate start address */
+					M_FLASH__SET_CMD(buf, cmd);
+					M_FLASH__SET_ADDR__3BYTE(buf, _hdl->cur_off + buf_len); /* the global start address is neglected -> it will always start at zero! */
+
+					M_FLASH__WAIT_FOR_IDLE
+
+					ret = lib_spi__cmd_and_read(_hdl->spi_hdl, buf, _buf + buf_len, sizeof(buf), _len - buf_len);
+					if (ret == EOK) {
+						_hdl->cur_off += buf_len;
+					}
+				}
+			}
+		}
+	} /* end of if-else-statement about the validity of the buffer */
+	if (ret != EOK) {
+		; /* push status */
+	}
+	return ret;
+}
+
+static int __flush(storage_hdl_t _hdl)
+{
+
+	int ret;
+
+
+	if (_hdl == NULL) {
+		return -EPAR_NULL;
+	}
+	if (_hdl->buf.stat == M_DEV_FLASH__STAT__NOT_EMPTY) {
+		ret = __prg(_hdl, _hdl->buf.start, _hdl->buf.mem, M_DEV_FLASH__BYTES_PER_PAGE);
+		if (ret == EOK) {
+			__rst_buf(_hdl);
+		}
+		return ret;
+	}
+	return EOK;
+}
+
+static int __write(storage_hdl_t _hdl, unsigned _len, unsigned char *const _buf)
+{
+	/* *********************************************************
+	 * local variables
+	 * ********************************************************/
+	int ret, tmpstart, frag_sz, indic;
+	uint8_t cmd;
+	uint8_t buf[4];
+
+	/* *********************************************************
+	 * start of code section / check functions' arguments
+	 * ********************************************************/
+	if (_hdl == NULL || _buf == NULL) {
+		return -ESTD_INVAL;
+	}
+	if (_len == 0) {
+		return EOK;
+	}
+	/* check, whether there is valid data within the buffer */
+	if (_hdl->buf.stat != M_DEV_FLASH__STAT__EMPTY) {
+
+		/* we have to calculate the page start address */
+		tmpstart = _hdl->cur_off - (_hdl->cur_off & ((1 <<  M_DEV_FLASH__PAGE_EXP) - 1));
+
+		/* check, whether this write operation will somehow effect this buffer */
+		if (tmpstart >= _hdl->buf.start || tmpstart + _len >= _hdl->buf.start) { /* new indicator or its accumulated length is larger or equal than the current buffer's start */
+			if (tmpstart >= _hdl->buf.start + M_DEV_FLASH__BYTES_PER_PAGE) { /* new indicator is larger than the buffer, hence flush */
+
+				/* does not affect, hence flush */
+				ret = __flush(_hdl);
+			} else { /* we will only write into the buffer */
+				ret = EOK;
+			}
+		} else { /* new indicator and its accumulated length is smaller then the buffer's start, hence flush! */
+
+			/* does not affect, hence flush */
+			ret = __flush(_hdl);
+		} /* end of if-else-statement */
+	} else {
+		ret = EOK;
+	}
+	{ /* start of region */
+
+		/* set indicator */
+		indic = 0;
+
+		while (_len) {
+
+			/* in case the buffer has been empty, we will read from it in order to have the correct values within the local buffer */
+			if (_hdl->buf.stat == M_DEV_FLASH__STAT__EMPTY) {
+
+				/* set buffer start to the beginning */
+				_hdl->buf.start 	=  _hdl->cur_off - (_hdl->cur_off & ((1 <<  M_DEV_FLASH__PAGE_EXP) - 1));
+
+				/* read the whole page into the buffer, once! */
+				cmd = (M_FLASH__CMD__READ  >> M_FLASH__BIT_POS__CMD_ID) & M_FLASH__BIT_MASK__CMD_ID;
+
+				/* select the appropriate start address */
+				M_FLASH__SET_CMD(buf, cmd);
+				M_FLASH__SET_ADDR__3BYTE(buf, _hdl->buf.start); /* the global start address is neglected -> it will always start at zero! */
+
+				M_FLASH__WAIT_FOR_IDLE
+
+				/* start with sending the read command */
+				lib_spi__cmd_and_read(_hdl->spi_hdl, buf, _hdl->buf.mem, sizeof(buf), sizeof(_hdl->buf.mem));
+
+				_hdl->buf.stat = M_DEV_FLASH__STAT__NOT_EMPTY;
+			}
+
+
+			/* check, whether we have to move the beginning pointer */
+			if (_hdl->buf.indic_bgn > (_hdl->cur_off & ((1 <<  M_DEV_FLASH__PAGE_EXP) - 1))) {
+				_hdl->buf.indic_bgn = (_hdl->cur_off & ((1 <<  M_DEV_FLASH__PAGE_EXP) - 1));
+			}
+
+			/* set indicators to the required position */
+			_hdl->buf.indic_crr = (_hdl->cur_off & ((1 <<  M_DEV_FLASH__PAGE_EXP) - 1));
+
+			/* calculate the fragment size */
+			frag_sz = M_DEV_FLASH__BYTES_PER_PAGE - _hdl->buf.indic_crr;
+
+			/* choose, whether to write just a fragment or the whole buffer length */
+			if (frag_sz > _len) { /* one write operation */
+
+				/* copy data to buffer */
+				memcpy(_hdl->buf.mem + _hdl->buf.indic_crr, _buf + indic, _len);
+
+				_hdl->buf.indic_crr += _len;
+				if (_hdl->buf.indic_crr > _hdl->buf.indic_end) {
+					_hdl->buf.indic_end = _hdl->buf.indic_crr;
+				}
+				_hdl->cur_off 		+= _len;
+				_len = 0;
+			} else { /* further write operations necessary */
+
+				memcpy(_hdl->buf.mem + _hdl->buf.indic_crr, _buf + indic, frag_sz);
+
+				/* move indicator and current offset */
+				_hdl->buf.indic_crr += frag_sz;
+				if (_hdl->buf.indic_crr > _hdl->buf.indic_end) {
+					_hdl->buf.indic_end = _hdl->buf.indic_crr;
+				}
+				_hdl->cur_off 		+= frag_sz;
+
+				/* check, whether we've reached the end */
+				ret = __flush(_hdl);
+
+				/* decrease length and increase indicator */
+				_len 	-= frag_sz;
+				indic 	+= frag_sz;
+			} /* end of if-else-statement */
+		} /* end of while statement */
+	} /* end of region */
+	if (ret != EOK) {
+		; /* s_flash__storage_stat.push_stat()*/ /* push status */
+	}
+	return ret;
+}
