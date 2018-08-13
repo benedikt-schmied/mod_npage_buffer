@@ -1,12 +1,12 @@
 /**
- * \addtogroup mod_npage_buffer_gnc
+ * \addtogroup mod_npage_buffer
  * \{
- * \file mod_npage_buffer_gnc.h
+ * \file mod_npage_buffer.h
  *
  */
 
-#ifndef __mod_npage_buffer_gnc_H__
-#define __mod_npage_buffer_gnc_H__
+#ifndef __mod_npage_buffer_H__
+#define __mod_npage_buffer_H__
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Includes
@@ -41,31 +41,31 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////////
 
 /**************************************************************************//**
- * @brief  mod_npage_buffer_gnc__init
+ * @brief  mod_npage_buffer__init
  *
  * @param [in,out]   _p         description
  * @return     0, if successful or < 0, if failed
  *             + '-1', initialization has failed
  * ****************************************************************************/
-int mod_npage_buffer_gnc__init(void *_p);
+int mod_npage_buffer__init(void *_p);
 
 /**************************************************************************//**
- * @brief  mod_npage_buffer_gnc__cleanup
+ * @brief  mod_npage_buffer__cleanup
  *
  * @param [in,out]   _p         description
  * @return     0, if successful or < 0, if failed
  *             + '-1', initialization has failed
  * ****************************************************************************/
-int mod_npage_buffer_gnc__cleanup(void *_p);
+int mod_npage_buffer__cleanup(void *_p);
 
 /**************************************************************************//**
- * @brief  mod_npage_buffer_gnc__reinit
+ * @brief  mod_npage_buffer__reinit
  *
  * @param [in,out]   _p         description
  * @return     0, if successful or < 0, if failed
  *             + '-1', initialization has failed
  * ****************************************************************************/
-int mod_npage_buffer_gnc__reinit(void *_p);
+int mod_npage_buffer__reinit(void *_p);
 
 #ifdef __cplusplus
 }
@@ -75,14 +75,14 @@ int mod_npage_buffer_gnc__reinit(void *_p);
 
 /** \} */
 /**
- * \addtogroup mod_npage_buffer_gnc
+ * \addtogroup mod_npage_buffer
  * \{
- * \file mod_npage_buffer_gnc.h
+ * \file mod_npage_buffer.h
  *
  */
 
-#ifndef __mod_npage_buffer_gnc_H__
-#define __mod_npage_buffer_gnc_H__
+#ifndef __mod_npage_buffer_H__
+#define __mod_npage_buffer_H__
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Includes
@@ -117,31 +117,31 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////////
 
 /**************************************************************************//**
- * @brief  mod_npage_buffer_gnc__init
+ * @brief  mod_npage_buffer__init
  *
  * @param [in,out]   _p         description
  * @return     0, if successful or < 0, if failed
  *             + '-1', initialization has failed
  * ****************************************************************************/
-int mod_npage_buffer_gnc__init(void *_p);
+int mod_npage_buffer__init(void *_p);
 
 /**************************************************************************//**
- * @brief  mod_npage_buffer_gnc__cleanup
+ * @brief  mod_npage_buffer__cleanup
  *
  * @param [in,out]   _p         description
  * @return     0, if successful or < 0, if failed
  *             + '-1', initialization has failed
  * ****************************************************************************/
-int mod_npage_buffer_gnc__cleanup(void *_p);
+int mod_npage_buffer__cleanup(void *_p);
 
 /**************************************************************************//**
- * @brief  mod_npage_buffer_gnc__reinit
+ * @brief  mod_npage_buffer__reinit
  *
  * @param [in,out]   _p         description
  * @return     0, if successful or < 0, if failed
  *             + '-1', initialization has failed
  * ****************************************************************************/
-int mod_npage_buffer_gnc__reinit(void *_p);
+int mod_npage_buffer__reinit(void *_p);
 
 #ifdef __cplusplus
 }

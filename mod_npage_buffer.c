@@ -1,7 +1,7 @@
 /**
- * \addtogroup mod_npage_buffer_gnc mod_npage_buffer_gnc
+ * \addtogroup mod_npage_buffer mod_npage_buffer
  *
- * mod_npage_buffer_gnc
+ * mod_npage_buffer
  *
  *
  */
@@ -18,7 +18,7 @@
 /* own libraries */
 
 /* project */
-#include "mod_npage_buffer_gnc.h"
+#include "mod_npage_buffer.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Macros
@@ -42,9 +42,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * @brief  mod_npage_buffer_gnc__init
+ * @brief  mod_npage_buffer__init
  */
-int mod_npage_buffer_gnc__init(void *_p)
+int mod_npage_buffer__init(void *_p)
 {
     /* automatic variables */
     int ret;
@@ -58,7 +58,7 @@ int mod_npage_buffer_gnc__init(void *_p)
 /**
  * @brief  mw_module_control__cleanup
  */
-int mod_npage_buffer_gnc__cleanup(void *_p)
+int mod_npage_buffer__cleanup(void *_p)
 {
     /* automatic variables */
     int ret;
@@ -71,9 +71,9 @@ int mod_npage_buffer_gnc__cleanup(void *_p)
 }
 
 /**
- * @brief  mod_npage_buffer_gnc__init
+ * @brief  mod_npage_buffer__init
  */
-int mod_npage_buffer_gnc__reinit(void *_p)
+int mod_npage_buffer__reinit(void *_p)
 {
     /* automatic variables */
     int ret;
